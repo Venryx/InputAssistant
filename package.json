@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "posix": "^4.1.1",
     "joystick": "^0.1.2"
   }
 }
