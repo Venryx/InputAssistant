@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "chroot": "^1.0.10",
     "joystick": "^0.1.2"
   }
 }

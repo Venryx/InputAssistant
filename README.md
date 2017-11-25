@@ -6,8 +6,8 @@ Translates input from a joystick into actions within Android games. (for Chromeb
 
 1) Download this repo to disk.
 2) Install NodeJS.
-3) Run "npm install" in repo folder.
-4) Install python. ("apt-get install python")
+3) Run "npm install". (in repo folder)
+4) Run "node FixNodeModules.js".
 
 ### Usage
 
