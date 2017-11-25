@@ -21,13 +21,27 @@ Log("Please enter index of game:");
 
 prompt.start();
 
-prompt.get(['gameIndex'], function (err, result) {
-    if (err) { 
-        Log(error);
-        return 1;
+
+
+prompt.get(
+    {
+        properties: {
+            gameIndex: {
+                type: "integer",
+                message: 'GameIndex must be only letters, spaces, or dashes',
+                required: true
+            },
+        },
+    },
+    function (err, result) {
+        if (err) { 
+            Log(error);
+            return 1;
+        }
+        //StartForGame(result.gameIndex.match(/[0-9]+/)[0]);
+        StartForGame(result.gameIndex);
     }
-    StartForGame(result.gameIndex.match(/[0-9]+/)[0]);
-});
+);
 
 
 function StartForGame(gameID) {
