@@ -2,6 +2,7 @@
 var fs = require("fs");
 var posix = require("posix")
 var {exec, execSync} = require("child_process");
+var prompt = require("prompt");
 
 // Set a deadzone of +/-3500 (out of +/-32k) and a sensitivty of 350 to reduce signal noise in joystick axis 
 var joystick = new (require("joystick"))(0, 3500, 350)
@@ -12,23 +13,51 @@ EscapeCHRoot();
 let {screenWidth, screenHeight} = GetAndroidInfo();
 
 let games = {
-    0: "SmashCopsHeat"
+    0: "SmashCopsHeat",
+    1: "Getaway",
 };
-let gameID = 0;
-
-if (gameID == 0) {
-    joystick.on("button", data=> {
-        let {number, value, time, init, type, id} = data;
-        //console.log(`Button:${number};${value}`);
-        if (number == 0) {
-            if (value) {
-                DoRam();
-            }
-        }
-    });
+Log("Games:");
+for (var i in games) {
+    Log(`\t${i}) ${games[i]}`);
 }
+Log("");
+Log("Please enter index of game:");
 
-Log(`Initialized. Game: ${games[gameID]}`);
+prompt.start();
+
+prompt.get(['gameIndex'], function (err, result) {
+    if (err) { 
+        Log(error);
+        return 1;
+    }
+    StartForGame(result.gameIndex);
+});
+
+
+function StartForGame(gameID) {
+    if (gameID == 0) {
+        joystick.on("button", data=> {
+            let {number, value, time, init, type, id} = data;
+            //console.log(`Button:${number};${value}`);
+            if (number == 0) {
+                if (value) {
+                    DoRam();
+                }
+            }
+        });
+    } else if (gameID == 1) {
+        joystick.on("button", data=> {
+            let {number, value, time, init, type, id} = data;
+            if (number == 0) {
+                if (value) {
+                    UsePower();
+                }
+            }
+        });
+    }
+    
+    Log(`Initialized. Game: ${games[gameID]}`);
+}
 
 function chroot(path) {
     return posix.chroot(path);
@@ -55,15 +84,6 @@ function GetAndroidInfo() {
     return {screenWidth: parseInt(resolutionStr.split("x")[0]), screenHeight: parseInt(resolutionStr.split("x")[1])};
 }
 
-// for Smash Cops Heat game
-function DoRam() {
-    //TapScreen(5, 90);
-    //TypeText("t");
-    //PressKey("KEYCODE_T");
-    PressKey(48);
-    console.log("Doing ram.");
-}
-
 function TapScreen(xPercent, yPercent) {
     //Log(screenWidth+ ";" + screenHeight + ";" + parseInt((yPercent * .01) * screenHeight));
     exec(`adb shell input tap ${parseInt((xPercent * .01) * screenWidth)} ${parseInt((yPercent * .01) * screenHeight)}`);
@@ -73,4 +93,18 @@ function TypeText(text) {
 }
 function PressKey(keyNameOrNumber) {
     exec(`adb shell input keyevent ${keyNameOrNumber}`);    
+}
+
+// for Smash Cops Heat game
+function DoRam() {
+    //TapScreen(5, 90);
+    //TypeText("t");
+    //PressKey("KEYCODE_T");
+    PressKey(48);
+    console.log("Doing ram.");
+}
+
+// for Getaway
+function UsePower() {
+    PressKey(66);
 }
