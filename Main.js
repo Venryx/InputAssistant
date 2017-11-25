@@ -48,6 +48,9 @@ function EscapeCHRoot() {
 }
 
 function GetAndroidInfo() {
+    // connect, in case not already connected
+    execSync("adb connect 100.115.92.2");
+
     let resolutionStr = execSync(`adb shell dumpsys window | grep cur= |tr -s " " | cut -d " " -f 4|cut -d "=" -f 2`).toString();
     return {screenWidth: parseInt(resolutionStr.split("x")[0]), screenHeight: parseInt(resolutionStr.split("x")[1])};
 }
