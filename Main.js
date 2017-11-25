@@ -27,19 +27,20 @@ prompt.get(
     {
         properties: {
             gameIndex: {
-                type: "integer",
-                message: 'GameIndex must be only letters, spaces, or dashes',
+                //type: "integer",
+                pattern: /^#?([0-9]+)$/,
+                message: 'GameIndex must be a number',
                 required: true
             },
         },
     },
-    function (err, result) {
-        if (err) { 
+    function (error, result) {
+        if (error) {
             Log(error);
             return 1;
         }
-        //StartForGame(result.gameIndex.match(/[0-9]+/)[0]);
-        StartForGame(result.gameIndex);
+        StartForGame(result.gameIndex.match(/[0-9]+/)[0]);
+        //StartForGame(result.gameIndex);
     }
 );
 
