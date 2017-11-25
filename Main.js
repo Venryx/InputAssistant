@@ -1,13 +1,9 @@
 //var chroot = require("chroot")
 var fs = require("fs");
 var posix = require("posix")
+var Joystick = require("joystick");
 var {exec, execSync} = require("child_process");
 var prompt = require("prompt");
-
-// Set a deadzone of +/-3500 (out of +/-32k) and a sensitivty of 350 to reduce signal noise in joystick axis 
-var joystick = new (require("joystick"))(0, 3500, 350)
-//joystick.on('button', console.log)
-//joystick.on('axis', console.log)
 
 EscapeCHRoot();
 let {screenWidth, screenHeight} = GetAndroidInfo();
@@ -30,11 +26,16 @@ prompt.get(['gameIndex'], function (err, result) {
         Log(error);
         return 1;
     }
-    StartForGame(result.gameIndex);
+    StartForGame(result.gameIndex.match(/[0-9]+/)[0]);
 });
 
 
 function StartForGame(gameID) {
+    // Set a deadzone of +/-3500 (out of +/-32k) and a sensitivty of 350 to reduce signal noise in joystick axis 
+    var joystick = new Joystick(0, 3500, 350)
+    //joystick.on('button', console.log)
+    //joystick.on('axis', console.log)
+
     if (gameID == 0) {
         joystick.on("button", data=> {
             let {number, value, time, init, type, id} = data;
