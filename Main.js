@@ -7,10 +7,12 @@ var prompt = require("prompt");
 
 EscapeCHRoot();
 let {screenWidth, screenHeight} = GetAndroidInfo();
+Log(`Connected to Android. Screen size: ${screenWidth}x${screenHeight}`);
 
 let games = {
     0: "SmashCopsHeat",
     1: "Getaway",
+    2: "World of Tanks Blitz",
 };
 Log("Games:");
 for (var i in games) {
@@ -39,37 +41,50 @@ prompt.get(
             Log(error);
             return 1;
         }
-        StartForGame(result.gameIndex.match(/[0-9]+/)[0]);
+        StartForGame(0, result.gameIndex.match(/[0-9]+/)[0]);
         //StartForGame(result.gameIndex);
     }
 );
 
 
-function StartForGame(gameID) {
-    // Set a deadzone of +/-3500 (out of +/-32k) and a sensitivty of 350 to reduce signal noise in joystick axis 
-    var joystick = new Joystick(0, 3500, 350)
-    //joystick.on('button', console.log)
-    //joystick.on('axis', console.log)
+function StartForGame(joystick, gameID) {
+    if (joystick) {
+        // Set a deadzone of +/-3500 (out of +/-32k) and a sensitivty of 350 to reduce signal noise in joystick axis 
+        var joystick = new Joystick(0, 3500, 350);
+        //joystick.on('button', console.log)
+        //joystick.on('axis', console.log)
+    }
+    function AddListener_OnMainTrigger(func) {
+        if (joystick) {
+            joystick.on("button", data=> {
+                let {number, value, time, init, type, id} = data;
+                //console.log(`Button:${number};${value}`);
+                if (number == 0 && value) {
+                    func();
+                }
+            });
+        } else {
+            const { spawn } = require('child_process');
+            const ls = spawn('cat', ['/dev/input/event11']);
+            ls.stdout.on('data', (data) => {
+              //console.log(`stdout: ${data}`);
+                func();
+            });
+            ls.stderr.on('data', (data) => {
+              console.log(`stderr: ${data}`);
+            });
+            ls.on('close', (code) => {
+              console.log(`child process exited with code ${code}`);
+            });
+        }
+    }
 
     if (gameID == 0) {
-        joystick.on("button", data=> {
-            let {number, value, time, init, type, id} = data;
-            //console.log(`Button:${number};${value}`);
-            if (number == 0) {
-                if (value) {
-                    DoRam();
-                }
-            }
-        });
+        AddListener_OnMainTrigger(DoRam);
     } else if (gameID == 1) {
-        joystick.on("button", data=> {
-            let {number, value, time, init, type, id} = data;
-            if (number == 0) {
-                if (value) {
-                    UsePower();
-                }
-            }
-        });
+        AddListener_OnMainTrigger(UsePower);
+    } else if (gameID == 2) {
+        AddListener_OnMainTrigger(FireWeapon);
     }
     
     Log(`Initialized. Game: ${games[gameID]}`);
@@ -123,4 +138,10 @@ function DoRam() {
 // for Getaway
 function UsePower() {
     PressKey(66);
+}
+
+// for World of Tanks Blitz
+function FireWeapon() {
+    console.log("Firing weapon.");
+    TapScreen(90.3, 75.9);
 }
