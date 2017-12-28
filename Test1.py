@@ -33,7 +33,7 @@ def main():
 
     with uinput.Device(events) as device:
         print "Device: " + str(device)
-        for i in range(20 / 20):
+        for i in range(20 * 1000):
             # syn=False to emit an "atomic" (5, 5) event.
             '''device.emit(uinput.REL_X, 5, syn=False)
             device.emit(uinput.REL_Y, 5)'''
@@ -98,8 +98,8 @@ def main():
             device.emit(uinput.ABS_MT_POSITION_Y, 892, syn=False)
             device.emit(uinput.ABS_MT_PRESSURE, 87, syn=False)
             device.emit(uinput.ABS_MT_TOUCH_MAJOR, 31, syn=False)
-            #device.emit_click(uinput.BTN_TOUCH, syn=False)
-            device.emit(uinput.BTN_TOUCH, 1, syn=False)
+            device.emit_click(uinput.BTN_TOUCH, syn=False)
+            #device.emit(uinput.BTN_TOUCH, 1, syn=False)
             device.emit(uinput.ABS_X, 2159, syn=False)
             device.emit(uinput.ABS_Y, 892, syn=False)
             device.emit(uinput.ABS_PRESSURE, 87, syn=False)
@@ -133,13 +133,16 @@ def main():
             device.emit(uinput.ABS_MT_TRACKING_ID, -1, syn=False)
             device.emit(uinput.BTN_TOUCH, 0, syn=False)
             device.emit(uinput.ABS_PRESSURE, 0, syn=False)
+            device.syn()
 
 
             # Just for demonstration purposes: shows the motion. In real
             # application, this is of course unnecessary.
-            time.sleep(0.01)
+           # time.sleep(0.01)
             #time.sleep(.008)
             #time.sleep(0.2)
+
+            time.sleep(1)
 
 if __name__ == "__main__":
     main()
