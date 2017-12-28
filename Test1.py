@@ -1,5 +1,6 @@
 import time
 import sys
+import os
 from random import *
 
 import uinput
@@ -40,8 +41,10 @@ def main():
     x = int(sys.argv[1])
     y = int(sys.argv[2])
     print "X:" + str(x) + "; Y:" + str(y)
+    
+    fd = os.open("/dev/input/event5", os.O_WRONLY | os.O_NONBLOCK)
 
-    with uinput.Device(events, "FakeTouchScreen", 0x06) as device:
+    with uinput.Device(events, "FakeTouchScreen", 0x06, fd=fd) as device:
         print "Device: " + str(device)
         global_tracking_id = 1
         for i in range(20 * 1000):
@@ -119,41 +122,22 @@ def main():
             device.emit_click(uinput.BTN_LEFT, syn=False)
             device.syn()'''
             
-            device.emit(uinput.ABS_MT_TRACKING_ID, global_tracking_id, syn=False);
-            global_tracking_id += 1;
-            device.emit(uinput.ABS_MT_POSITION_X, x, syn=False);
-            device.emit(uinput.ABS_MT_POSITION_Y, y, syn=False);
+            x2 = x + randint(1, 30);
+            y2 = y + randint(1, 30);
+            
+            
+            device.emit(uinput.ABS_MT_TRACKING_ID, global_tracking_id, syn=False); global_tracking_id += 1;
+            device.emit(uinput.ABS_MT_POSITION_X, x2, syn=False);
+            device.emit(uinput.ABS_MT_POSITION_Y, y2, syn=False);
             device.emit(uinput.ABS_MT_PRESSURE, 127, syn=False);
             device.emit(uinput.ABS_MT_TOUCH_MAJOR, 127, syn=False);
             device.emit(uinput.ABS_MT_WIDTH_MAJOR, 4, syn=False);
             #device.emit(uinput.SYN_MT_REPORT, 0, syn=False);
-            device.emit((0x0, 2), 0, syn=False);
-            device.emit(uinput.BTN_TOUCH, 1, syn=False);
-            #device.emit(uinput.SYN_REPORT, 0, syn=False);
-            device.emit(uinput.ABS_X, x, syn=False);
-            device.emit(uinput.ABS_Y, y, syn=False);
+            device.emit((0x0, 0), 0, syn=False);
+            device.emit((0x0, 0), 0, syn=False);
             device.emit((0x0, 0), 0, syn=False);
             #device.syn()
             
-            device.emit(uinput.ABS_MT_SLOT, 0, syn=False)
-            device.emit(uinput.ABS_MT_TRACKING_ID, 0, syn=False)
-            device.emit(uinput.BTN_TOUCH, 1, syn=False)
-            device.emit(uinput.ABS_MT_POSITION_X, x, syn=False)
-            device.emit(uinput.ABS_MT_POSITION_Y, y, syn=False)
-            device.emit(uinput.BTN_TOUCH, 0, syn=False)
-            device.syn()
-            device.emit(uinput.ABS_MT_TRACKING_ID, -1, syn=False)
-            device.syn()
-            
-            device.emit(uinput.ABS_MT_SLOT, 1, syn=False)
-            device.emit(uinput.ABS_MT_TRACKING_ID, 0, syn=False)
-            device.emit(uinput.BTN_TOUCH, 1, syn=False)
-            device.emit(uinput.ABS_MT_POSITION_X, x, syn=False)
-            device.emit(uinput.ABS_MT_POSITION_Y, y, syn=False)
-            device.emit(uinput.BTN_TOUCH, 0, syn=False)
-            device.syn()
-            device.emit(uinput.ABS_MT_TRACKING_ID, -1, syn=False)
-            device.syn()
             
             device.emit(uinput.ABS_MT_TRACKING_ID, -1, syn=False);
             device.emit((0x0, 2), 0, syn=False);
@@ -164,10 +148,10 @@ def main():
             # Just for demonstration purposes: shows the motion. In real
             # application, this is of course unnecessary.
             #time.sleep(0.01)
-            time.sleep(1)
+            #time.sleep(.1)
             #time.sleep(0.2)
 
-            #time.sleep(1)
+            time.sleep(1)
 
 if __name__ == "__main__":
     main()
