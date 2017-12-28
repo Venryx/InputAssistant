@@ -8,7 +8,8 @@ module.exports.GetTouchscreenSize = function(callback) {
         //inputList.kill();
         //console.log(`Output: ${stdout} STDError: ${stderr} Error: ${error}`);
         //let lines = stdout.split("\n");
-        let touchscreenInputPathMatch = stderr.match(/^(.*\/input\/event[0-9]+):.+touchscreen/mi);
+        let inputDeviceList = stderr;
+        let touchscreenInputPathMatch = inputDeviceList.match(/^(.*\/input\/event[0-9]+):.+touchscreen/mi);
         if (touchscreenInputPathMatch == null) {
             throw new Error(`Could not find touchscreen device! Only found these:\n==========\n${stderr}`);
         }
@@ -28,7 +29,7 @@ module.exports.GetTouchscreenSize = function(callback) {
 
             console.log(`Found touchscreen size: ${width}x${height}`);
 
-            callback({width, height});
+            callback({inputDeviceList, touchscreenInputPath, width, height});
         });
     });
 

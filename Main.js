@@ -30,34 +30,46 @@ prompt.start();
 
 var touchscreenWidth, touchscreenHeight;
 
+var inputDeviceList;
 
-prompt.get(
-    {
-        properties: {
-            gameIndex: {
-                //type: "integer",
-                pattern: /^#?([0-9]+)$/,
-                message: 'GameIndex must be a number',
-                required: true
+GetTouchscreenSize(({inputDeviceList, touchscreenInputPath, width, height})=> {
+    touchscreenWidth = width;
+    touchscreenHeight = height;
+    
+    let inputDeviceList_simple = inputDeviceList.split("\n")
+        .filter(a=>a.includes("/input/") && !a.includes("trying to scan"))
+        .join("\n").replace(/\/dev\/input\//g, "");
+    
+    prompt.get(
+        {
+            properties: {
+                gameIndex: {
+                    //type: "integer",
+                    pattern: /^#?([0-9]+)$/,
+                    message: 'GameIndex must be a number',
+                    required: true
+                },
+                deviceName: {
+                    description: `Input devices:\n==========\n${inputDeviceList_simple}\n==========\nType the name of your input device`,
+                    //type: "integer",
+                    //pattern: /^#?([0-9]+)$/,
+                    message: 'DeviceName must be a string',
+                    required: true
+                },
             },
         },
-    },
-    function (error, result) {
-        if (error) {
-            Log(error);
-            return 1;
-        }
-        
+        function (error, result) {
+            if (error) {
+                Log(error);
+                return 1;
+            }
 
-        GetTouchscreenSize(({width, height})=> {
             //let {width, height} = GetTouchscreenSize_Sync();
-            touchscreenWidth = width;
-            touchscreenHeight = height;
-            StartForGame(0, result.gameIndex.match(/[0-9]+/)[0]);
-            //StartForGame(result.gameIndex);    
-        });
-    }
-);
+            
+            StartForGame(result.gameIndex.match(/[0-9]+/)[0], result.deviceName);
+        }
+    );
+});
 
 // for testing
 var mainTrigger_func;
@@ -67,13 +79,15 @@ function StartTesting() {
 // toggle this to 1 to test (have main trigger occur every 1s)
 var testing = 0
 
-function StartForGame(joystick, gameID) {
-    if (joystick) {
+function StartForGame(gameID, inputDeviceName) {
+    if (inputDeviceName.startsWith("js")) {
         // Set a deadzone of +/-3500 (out of +/-32k) and a sensitivty of 350 to reduce signal noise in joystick axis 
-        var joystick = new Joystick(0, 3500, 350);
+        let joystickIndex = parseInt(inputDeviceName.match(/js([0-9]+)/)[1]);
+        var joystick = new Joystick(joystickIndex, 3500, 350);
         //joystick.on('button', console.log)
         //joystick.on('axis', console.log)
     }
+    
     let lastTriggerTime = 0;
     function AddListener_OnMainTrigger(func) {
         if (testing) {
@@ -81,7 +95,7 @@ function StartForGame(joystick, gameID) {
             return;
         }
         
-        if (joystick) {
+        if (inputDeviceName.startsWith("js")) {
             joystick.on("button", data=> {
                 let {number, value, time, init, type, id} = data;
                 //console.log(`Button:${number};${value}`);
@@ -91,7 +105,7 @@ function StartForGame(joystick, gameID) {
             });
         } else {
             const { spawn } = require('child_process');
-            const ls = spawn('cat', ['/dev/input/event11']);
+            const ls = spawn('cat', ["/dev/input/" + inputDeviceName]);
             ls.stdout.on('data', (data) => {
               //console.log(`stdout: ${data}`);
                 // if it's been less than 100ms, this is probably part of previous trigger; ignore
