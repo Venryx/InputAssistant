@@ -5,9 +5,11 @@ var Joystick = require("joystick");
 var {exec, execSync} = require("child_process");
 var prompt = require("prompt");
 
-EscapeCHRoot();
+/*EscapeCHRoot();
 let {screenWidth, screenHeight} = GetAndroidInfo();
-Log(`Connected to Android. Screen size: ${screenWidth}x${screenHeight}`);
+Log(`Connected to Android. Screen size: ${screenWidth}x${screenHeight}`);*/
+let screenWidth = 1920;
+let screenHeight = 1080;
 
 let games = {
     0: "SmashCopsHeat",
@@ -46,6 +48,13 @@ prompt.get(
     }
 );
 
+// for testing
+var mainTrigger_func;
+function StartTesting() {
+    setInterval(mainTrigger_func, 1000);
+}
+// toggle this to 1 to test (have main trigger occur every 1s)
+var testing = 1
 
 function StartForGame(joystick, gameID) {
     if (joystick) {
@@ -55,6 +64,11 @@ function StartForGame(joystick, gameID) {
         //joystick.on('axis', console.log)
     }
     function AddListener_OnMainTrigger(func) {
+        if (testing) {
+            mainTrigger_func = func; // for testing
+            return;
+        }
+        
         if (joystick) {
             joystick.on("button", data=> {
                 let {number, value, time, init, type, id} = data;
@@ -86,6 +100,8 @@ function StartForGame(joystick, gameID) {
     } else if (gameID == 2) {
         AddListener_OnMainTrigger(FireWeapon);
     }
+
+    if (testing) StartTesting();
     
     Log(`Initialized. Game: ${games[gameID]}`);
 }
@@ -117,7 +133,11 @@ function GetAndroidInfo() {
 
 function TapScreen(xPercent, yPercent) {
     //Log(screenWidth+ ";" + screenHeight + ";" + parseInt((yPercent * .01) * screenHeight));
-    exec(`adb shell input tap ${parseInt((xPercent * .01) * screenWidth)} ${parseInt((yPercent * .01) * screenHeight)}`);
+    let xPos = parseInt((xPercent * .01) * screenWidth);
+    let yPos = parseInt((yPercent * .01) * screenHeight);
+    //exec(`adb shell input tap ${xPos} ${yPos}`);
+    //exec(`adb shell input swipe ${xPos} ${yPos} ${xPos} ${yPos}`);
+    exec(`xdotool mousemove ${xPos} ${yPos} click 1`);
 }
 function TypeText(text) {
     exec(`adb shell input text "${text}"`);
@@ -143,5 +163,15 @@ function UsePower() {
 // for World of Tanks Blitz
 function FireWeapon() {
     console.log("Firing weapon.");
-    TapScreen(90.3, 75.9);
+    TapScreen_2(90.3, 75.9);
+
+    // temp
+    TapScreen_2 = ()=>{};
+}
+
+let path = "/home/venryx/Downloads/Root/Apps/@V/Input Assistant/Main";
+function TapScreen_2(xPercent, yPercent) {
+    x = parseInt(screenWidth * (xPercent / 100));
+    y = parseInt(screenHeight * (yPercent / 100));
+    Log(execSync(`sudo /usr/bin/python "${path}/Test1.py" ${x} ${y}`).toString());
 }
