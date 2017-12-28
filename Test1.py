@@ -11,16 +11,20 @@ def main():
     uinput.BTN_RIGHT,
     '''
     events = (
-        #uinput.ABS_MT_SLOT,
-        #uinput.ABS_MT_TRACKING_ID,
-        #uinput.BTN_TOUCH,
-        #uinput.ABS_MT_POSITION_X,
-        #uinput.ABS_MT_POSITION_Y,
-        #uinput.SYN_REPORT,
-
+        uinput.ABS_MT_TRACKING_ID,
+        uinput.ABS_MT_POSITION_X,
+        uinput.ABS_MT_POSITION_Y,
+        uinput.ABS_MT_PRESSURE,
+        uinput.ABS_MT_TOUCH_MAJOR,
+        uinput.BTN_TOUCH,
         uinput.ABS_X,
         uinput.ABS_Y,
-        uinput.BTN_LEFT,  
+        uinput.ABS_PRESSURE,
+        uinput.ABS_MT_PRESSURE,
+
+        #uinput.ABS_MT_SLOT,
+        #uinput.SYN_REPORT,
+        #uinput.BTN_LEFT,  
     )
 
     x = int(sys.argv[1])
@@ -94,40 +98,41 @@ def main():
             device.emit(uinput.ABS_MT_POSITION_Y, 892, syn=False)
             device.emit(uinput.ABS_MT_PRESSURE, 87, syn=False)
             device.emit(uinput.ABS_MT_TOUCH_MAJOR, 31, syn=False)
-            device.emit_click(uniput.BTN_TOUCH, 1, syn=False)
+            #device.emit_click(uinput.BTN_TOUCH, syn=False)
+            device.emit(uinput.BTN_TOUCH, 1, syn=False)
             device.emit(uinput.ABS_X, 2159, syn=False)
             device.emit(uinput.ABS_Y, 892, syn=False)
             device.emit(uinput.ABS_PRESSURE, 87, syn=False)
-            Event: time 1514433201.926149, -------------- SYN_REPORT ------------
+            device.syn()
             time.sleep(.926169 - .926149)
-            Event: time 1514433201.926169, type 3 (EV_ABS), code 58 (ABS_MT_PRESSURE), value 89
-            Event: time 1514433201.926169, type 3 (EV_ABS), code 24 (ABS_PRESSURE), value 89
-            Event: time 1514433201.926169, -------------- SYN_REPORT ------------
+            device.emit(uinput.ABS_MT_PRESSURE, 89, syn=False)
+            device.emit(uinput.ABS_PRESSURE, 89, syn=False)
+            device.syn()
             time.sleep(.930645 - .926169)
-            Event: time 1514433201.930645, type 3 (EV_ABS), code 58 (ABS_MT_PRESSURE), value 91
-            Event: time 1514433201.930645, type 3 (EV_ABS), code 24 (ABS_PRESSURE), value 91
-            Event: time 1514433201.930645, -------------- SYN_REPORT ------------
+            device.emit(uinput.ABS_MT_PRESSURE, 91, syn=False)
+            device.emit(uinput.ABS_PRESSURE, 91, syn=False)
+            device.syn()
             time.sleep(.937608 - .930645)
-            Event: time 1514433201.937608, type 3 (EV_ABS), code 58 (ABS_MT_PRESSURE), value 93
-            Event: time 1514433201.937608, type 3 (EV_ABS), code 24 (ABS_PRESSURE), value 93
-            Event: time 1514433201.937608, -------------- SYN_REPORT ------------
+            device.emit(uinput.ABS_MT_PRESSURE, 93, syn=False)
+            device.emit(uinput.ABS_PRESSURE, 93, syn=False)
+            device.syn()
             time.sleep(.944590 - .937608)
-            Event: time 1514433201.944590, type 3 (EV_ABS), code 58 (ABS_MT_PRESSURE), value 94
-            Event: time 1514433201.944590, type 3 (EV_ABS), code 24 (ABS_PRESSURE), value 94
-            Event: time 1514433201.944590, -------------- SYN_REPORT ------------
+            device.emit(uinput.ABS_MT_PRESSURE, 94, syn=False)
+            device.emit(uinput.ABS_PRESSURE, 94, syn=False)
+            device.syn()
             time.sleep(.951592 - .944590)
-            Event: time 1514433201.951592, type 3 (EV_ABS), code 58 (ABS_MT_PRESSURE), value 93
-            Event: time 1514433201.951592, type 3 (EV_ABS), code 24 (ABS_PRESSURE), value 93
-            Event: time 1514433201.951592, -------------- SYN_REPORT ------------
+            device.emit(uinput.ABS_MT_PRESSURE, 93, syn=False)
+            device.emit(uinput.ABS_PRESSURE, 93, syn=False)
+            device.syn()
             time.sleep(.958621 - .951592)
-            Event: time 1514433201.958621, type 3 (EV_ABS), code 58 (ABS_MT_PRESSURE), value 88
-            Event: time 1514433201.958621, type 3 (EV_ABS), code 48 (ABS_MT_TOUCH_MAJOR), value 30
-            Event: time 1514433201.958621, type 3 (EV_ABS), code 24 (ABS_PRESSURE), value 88
-            Event: time 1514433201.958621, -------------- SYN_REPORT ------------
+            device.emit(uinput.ABS_MT_PRESSURE, 88, syn=False)
+            device.emit(uinput.ABS_MT_TOUCH_MAJOR, 30, syn=False)
+            device.emit(uinput.ABS_PRESSURE, 88, syn=False)
+            device.syn()
             time.sleep(.971123 - .958621)
-            Event: time 1514433201.971123, type 3 (EV_ABS), code 57 (ABS_MT_TRACKING_ID), value -1
-            Event: time 1514433201.971123, type 1 (EV_KEY), code 330 (BTN_TOUCH), value 0
-            Event: time 1514433201.971123, type 3 (EV_ABS), code 24 (ABS_PRESSURE), value 0
+            device.emit(uinput.ABS_MT_TRACKING_ID, -1, syn=False)
+            device.emit(uinput.BTN_TOUCH, 0, syn=False)
+            device.emit(uinput.ABS_PRESSURE, 0, syn=False)
 
 
             # Just for demonstration purposes: shows the motion. In real
