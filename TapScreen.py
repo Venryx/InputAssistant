@@ -44,9 +44,10 @@ def main():
 
     x = int(sys.argv[1])
     y = int(sys.argv[2])
+    touchscreenInputPath = sys.argv[3]
     print "Tapping at: " + str(x) + "x" + str(y)
     
-    fd = os.open("/dev/input/event5", os.O_WRONLY | os.O_NONBLOCK)
+    fd = os.open(touchscreenInputPath, os.O_WRONLY | os.O_NONBLOCK)
     with uinput.Device(events, "FakeTouchScreen", 0x06, fd=fd) as device:
     
     #with uinput.Device(events, "FakeTouchScreen", 0x06) as device:

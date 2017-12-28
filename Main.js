@@ -28,13 +28,13 @@ Log("Please enter index of game:");
 
 prompt.start();
 
-var touchscreenWidth, touchscreenHeight;
+var inputDeviceList, touchscreenInputPath, touchscreenWidth, touchscreenHeight;
 
-var inputDeviceList;
-
-GetTouchscreenSize(({inputDeviceList, touchscreenInputPath, width, height})=> {
-    touchscreenWidth = width;
-    touchscreenHeight = height;
+GetTouchscreenSize(info=> {
+    inputDeviceList = info.inputDeviceList;
+    touchscreenInputPath = info.touchscreenInputPath;
+    touchscreenWidth = info.width;
+    touchscreenHeight = info.height;
     
     let inputDeviceList_simple = inputDeviceList.split("\n")
         .filter(a=>a.includes("/input/") && !a.includes("trying to scan"))
@@ -203,7 +203,7 @@ let path = "/home/venryx/Downloads/Root/Apps/@V/Input Assistant/Main";
 function TapScreen_2(xPercent, yPercent) {
     x = parseInt(touchscreenWidth * (xPercent / 100));
     y = parseInt(touchscreenHeight * (yPercent / 100));
-    exec(`sudo /usr/bin/python "${path}/TapScreen.py" ${x} ${y}`, (error, stdout, stderr)=> {
+    exec(`sudo /usr/bin/python "${path}/TapScreen.py" ${x} ${y} ${touchscreenInputPath}`, (error, stdout, stderr)=> {
         Log(`Python output: ${stdout}`);
     });
 }
