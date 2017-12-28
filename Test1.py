@@ -94,14 +94,14 @@ def main():
             device.syn()'''
 
             device.emit(uinput.ABS_MT_TRACKING_ID, 112, syn=False)
-            device.emit(uinput.ABS_MT_POSITION_X, 2159, syn=False)
-            device.emit(uinput.ABS_MT_POSITION_Y, 892, syn=False)
+            device.emit(uinput.ABS_MT_POSITION_X, x, syn=False)
+            device.emit(uinput.ABS_MT_POSITION_Y, y, syn=False)
             device.emit(uinput.ABS_MT_PRESSURE, 87, syn=False)
             device.emit(uinput.ABS_MT_TOUCH_MAJOR, 31, syn=False)
-            device.emit_click(uinput.BTN_TOUCH, syn=False)
-            #device.emit(uinput.BTN_TOUCH, 1, syn=False)
-            device.emit(uinput.ABS_X, 2159, syn=False)
-            device.emit(uinput.ABS_Y, 892, syn=False)
+            #device.emit_click(uinput.BTN_TOUCH, syn=False)
+            device.emit(uinput.BTN_TOUCH, 1, syn=False)
+            device.emit(uinput.ABS_X, x, syn=False)
+            device.emit(uinput.ABS_Y, y, syn=False)
             device.emit(uinput.ABS_PRESSURE, 87, syn=False)
             device.syn()
             time.sleep(.926169 - .926149)
@@ -139,10 +139,10 @@ def main():
             # Just for demonstration purposes: shows the motion. In real
             # application, this is of course unnecessary.
            # time.sleep(0.01)
-            #time.sleep(.008)
+            time.sleep(.005)
             #time.sleep(0.2)
 
-            time.sleep(1)
+            #time.sleep(1)
 
 if __name__ == "__main__":
     main()
