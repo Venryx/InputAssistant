@@ -8,8 +8,11 @@ var prompt = require("prompt");
 /*EscapeCHRoot();
 let {screenWidth, screenHeight} = GetAndroidInfo();
 Log(`Connected to Android. Screen size: ${screenWidth}x${screenHeight}`);*/
-let screenWidth = 1920;
-let screenHeight = 1080;
+// not needed atm; we use touchscreen width/height instead, for send-input pathway
+//let screenWidth = 1920;
+//let screenHeight = 1080;
+
+let {GetTouchscreenSize, GetTouchscreenSize_Sync} = require("./TouchscreenInfo");
 
 let games = {
     0: "SmashCopsHeat",
@@ -25,6 +28,7 @@ Log("Please enter index of game:");
 
 prompt.start();
 
+var touchscreenWidth, touchscreenHeight;
 
 
 prompt.get(
@@ -43,8 +47,15 @@ prompt.get(
             Log(error);
             return 1;
         }
-        StartForGame(0, result.gameIndex.match(/[0-9]+/)[0]);
-        //StartForGame(result.gameIndex);
+        
+
+        GetTouchscreenSize(({width, height})=> {
+            //let {width, height} = GetTouchscreenSize_Sync();
+            touchscreenWidth = width;
+            touchscreenHeight = height;
+            StartForGame(0, result.gameIndex.match(/[0-9]+/)[0]);
+            //StartForGame(result.gameIndex);    
+        });
     }
 );
 
@@ -54,7 +65,7 @@ function StartTesting() {
     setInterval(mainTrigger_func, 1000);
 }
 // toggle this to 1 to test (have main trigger occur every 1s)
-var testing = 1
+var testing = 0
 
 function StartForGame(joystick, gameID) {
     if (joystick) {
@@ -63,6 +74,7 @@ function StartForGame(joystick, gameID) {
         //joystick.on('button', console.log)
         //joystick.on('axis', console.log)
     }
+    let lastTriggerTime = 0;
     function AddListener_OnMainTrigger(func) {
         if (testing) {
             mainTrigger_func = func; // for testing
@@ -82,6 +94,10 @@ function StartForGame(joystick, gameID) {
             const ls = spawn('cat', ['/dev/input/event11']);
             ls.stdout.on('data', (data) => {
               //console.log(`stdout: ${data}`);
+                // if it's been less than 100ms, this is probably part of previous trigger; ignore
+                if (Date.now() - lastTriggerTime < 150) return;
+                lastTriggerTime = Date.now();
+
                 func();
             });
             ls.stderr.on('data', (data) => {
@@ -166,12 +182,14 @@ function FireWeapon() {
     TapScreen_2(90.3, 75.9);
 
     // temp
-    TapScreen_2 = ()=>{};
+    //TapScreen_2 = ()=>{};
 }
 
 let path = "/home/venryx/Downloads/Root/Apps/@V/Input Assistant/Main";
 function TapScreen_2(xPercent, yPercent) {
-    x = parseInt(screenWidth * (xPercent / 100));
-    y = parseInt(screenHeight * (yPercent / 100));
-    Log(execSync(`sudo /usr/bin/python "${path}/Test1.py" ${x} ${y}`).toString());
+    x = parseInt(touchscreenWidth * (xPercent / 100));
+    y = parseInt(touchscreenHeight * (yPercent / 100));
+    exec(`sudo /usr/bin/python "${path}/TapScreen.py" ${x} ${y}`, (error, stdout, stderr)=> {
+        Log(`Python output: ${stdout}`);
+    });
 }

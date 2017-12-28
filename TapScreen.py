@@ -3,7 +3,11 @@ import sys
 import os
 from random import *
 
-import uinput
+#import uinput
+#from python-uinput-custom import *
+import imp
+dir_path = os.path.dirname(os.path.realpath(__file__))
+uinput = imp.load_source('module.name', dir_path + '/python-uinput-custom.py')
 
 def main():
     '''
@@ -40,14 +44,16 @@ def main():
 
     x = int(sys.argv[1])
     y = int(sys.argv[2])
-    print "X:" + str(x) + "; Y:" + str(y)
+    print "Tapping at: " + str(x) + "x" + str(y)
     
     fd = os.open("/dev/input/event5", os.O_WRONLY | os.O_NONBLOCK)
-
     with uinput.Device(events, "FakeTouchScreen", 0x06, fd=fd) as device:
-        print "Device: " + str(device)
+    
+    #with uinput.Device(events, "FakeTouchScreen", 0x06) as device:
+        device.__uinput_fd = fd
+        
         global_tracking_id = 1
-        for i in range(20 * 1000):
+        for i in range(20 / 20):
             # syn=False to emit an "atomic" (5, 5) event.
             '''device.emit(uinput.REL_X, 5, syn=False)
             device.emit(uinput.REL_Y, 5)'''
@@ -64,9 +70,7 @@ def main():
             #device.emit(uinput.SYN_REPORT, 0);
             device.syn()
             '''
-
-            print "clicking"
-
+            
             #device.emit(uinput.ABS_MT_TRACKING_ID, 20, syn=False);
             '''device.emit_click(uinput.BTN_TOUCH, 1);
             device.emit(uinput.ABS_X, x, syn=False);
@@ -127,23 +131,22 @@ def main():
             
             
             device.emit(uinput.ABS_MT_TRACKING_ID, global_tracking_id, syn=False); global_tracking_id += 1;
-            device.emit(uinput.ABS_MT_POSITION_X, x2, syn=False);
-            device.emit(uinput.ABS_MT_POSITION_Y, y2, syn=False);
+            device.emit(uinput.ABS_MT_POSITION_X, x, syn=False);
+            device.emit(uinput.ABS_MT_POSITION_Y, y, syn=False);
             device.emit(uinput.ABS_MT_PRESSURE, 127, syn=False);
             device.emit(uinput.ABS_MT_TOUCH_MAJOR, 127, syn=False);
             device.emit(uinput.ABS_MT_WIDTH_MAJOR, 4, syn=False);
             #device.emit(uinput.SYN_MT_REPORT, 0, syn=False);
-            device.emit((0x0, 0), 0, syn=False);
-            device.emit((0x0, 0), 0, syn=False);
-            device.emit((0x0, 0), 0, syn=False);
-            #device.syn()
+            #device.emit((0x0, 0), 0, syn=False);
+            device.syn()
             
             
             device.emit(uinput.ABS_MT_TRACKING_ID, -1, syn=False);
-            device.emit((0x0, 2), 0, syn=False);
-            device.emit(uinput.BTN_TOUCH, 0, syn=False);
-            device.emit((0x0, 0), 0, syn=False);
-
+            #device.emit((0x0, 2), 0, syn=False);
+            #device.emit(uinput.BTN_TOUCH, 0, syn=False);
+            #device.emit((0x0, 0), 0, syn=False);
+            device.syn()
+            
 
             # Just for demonstration purposes: shows the motion. In real
             # application, this is of course unnecessary.
