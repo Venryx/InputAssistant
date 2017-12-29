@@ -1,3 +1,4 @@
+// todo: move this into the npm install script (if still needed)
 console.log(`
 Not yet coded.
 For now, manually complete these instructions:

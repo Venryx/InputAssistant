@@ -1,22 +1,22 @@
 # InputAssistant
 
-Translates input from a joystick/clicker into actions within Android games. (for Chromebooks with Android support)
+Translates input from a joystick/button into actions within Android games. (for Chromebooks with Android support)
 
 ### Setup
 
 1) Download this repo to disk. (in crouton chroot)
 2) Install [NodeJS](https://nodejs.org).
 3) Run "npm install". (in repo folder)
-4) Run "node ./FixNodeModules.js". (not actually necessary atm)
-5) Run "apt-get install pip".
+4) Run "apt-get install evtest".
+5) Run "apt-get install python-pip".
 6) Run "pip install python-uinput".
 
 ### Usage
 
-1) Connect joystick or bluetooth clicker/shutter button. (by default, uses shutter; can change in code)
+1) Connect joystick or bluetooth button.
 2) Run "./Start.sh". (can run from ChromeOS using "enter-chroot" command)
 
-Joystick/clicker actions will now translate into Android game actions, as specified in the script files.
+Joystick/button actions will now translate into Android game actions, as specified in the script files.
 
 ### Troubleshooting
 

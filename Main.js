@@ -5,6 +5,21 @@ var Joystick = require("joystick");
 var {exec, execSync} = require("child_process");
 var prompt = require("prompt");
 
+function chroot(path) {
+    return posix.chroot(path);
+}
+function EscapeCHRoot() {
+    var dir = "./tempCHRoot";
+    if (!fs.existsSync(dir)){chromebook
+        fs.mkdirSync(dir);
+    }
+    chroot(dir);
+    for (var i = 0; i < 100; i++) {
+        process.chdir("..");
+    }
+    chroot(".");
+}
+
 /*EscapeCHRoot();
 let {screenWidth, screenHeight} = GetAndroidInfo();
 Log(`Connected to Android. Screen size: ${screenWidth}x${screenHeight}`);*/
@@ -30,6 +45,7 @@ prompt.start();
 
 var inputDeviceList, touchscreenInputPath, touchscreenWidth, touchscreenHeight;
 
+//let {width, height} = GetTouchscreenSize_Sync();
 GetTouchscreenSize(info=> {
     inputDeviceList = info.inputDeviceList;
     touchscreenInputPath = info.touchscreenInputPath;
@@ -64,8 +80,6 @@ GetTouchscreenSize(info=> {
                 return 1;
             }
 
-            //let {width, height} = GetTouchscreenSize_Sync();
-            
             StartForGame(result.gameIndex.match(/[0-9]+/)[0], result.deviceName);
         }
     );
@@ -120,6 +134,11 @@ function StartForGame(gameID, inputDeviceName) {
             ls.on('close', (code) => {
               console.log(`child process exited with code ${code}`);
             });
+
+            // volume locker
+            /*setInterval(()=> {
+                exec(`amixer set "Master" 100%`);
+            }, 100);*/
         }
     }
 
@@ -136,22 +155,7 @@ function StartForGame(gameID, inputDeviceName) {
     Log(`Initialized. Game: ${games[gameID]}`);
 }
 
-function chroot(path) {
-    return posix.chroot(path);
-}
-
 function Log(str) { console.log(str) }
-function EscapeCHRoot() {
-    var dir = "./tempCHRoot";
-    if (!fs.existsSync(dir)){
-        fs.mkdirSync(dir);
-    }
-    chroot(dir);
-    for (var i = 0; i < 100; i++) {
-        process.chdir("..");
-    }
-    chroot(".");
-}
 
 function GetAndroidInfo() {
     // connect, in case not already connected
@@ -161,18 +165,18 @@ function GetAndroidInfo() {
     return {screenWidth: parseInt(resolutionStr.split("x")[0]), screenHeight: parseInt(resolutionStr.split("x")[1])};
 }
 
-function TapScreen(xPercent, yPercent) {
+function TapScreen_ADB(xPercent, yPercent) {
     //Log(screenWidth+ ";" + screenHeight + ";" + parseInt((yPercent * .01) * screenHeight));
     let xPos = parseInt((xPercent * .01) * screenWidth);
     let yPos = parseInt((yPercent * .01) * screenHeight);
-    //exec(`adb shell input tap ${xPos} ${yPos}`);
+    exec(`adb shell input tap ${xPos} ${yPos}`);
     //exec(`adb shell input swipe ${xPos} ${yPos} ${xPos} ${yPos}`);
-    exec(`xdotool mousemove ${xPos} ${yPos} click 1`);
+    //exec(`xdotool mousemove ${xPos} ${yPos} click 1`);
 }
-function TypeText(text) {
+function TypeText_ADB(text) {
     exec(`adb shell input text "${text}"`);
 }
-function PressKey(keyNameOrNumber) {
+function PressKey_ADB(keyNameOrNumber) {
     exec(`adb shell input keyevent ${keyNameOrNumber}`);    
 }
 
@@ -182,28 +186,29 @@ function DoRam() {
     //TypeText("t");
     //PressKey("KEYCODE_T");
     PressKey(48);
-    console.log("Doing ram.");
+    Log("Doing ram.");
 }
 
 // for Getaway
 function UsePower() {
+    Log("Using power.");
     PressKey(66);
 }
 
 // for World of Tanks Blitz
 function FireWeapon() {
-    console.log("Firing weapon.");
-    TapScreen_2(90.3, 75.9);
+    Log("Firing weapon.");
+    TapScreen_2(90.3, 75.9); // for 1920x1080 screen
+    //TapScreen_2(87, 68)// for 1366x768 screen
 
     // temp
     //TapScreen_2 = ()=>{};
 }
 
-let path = "/home/venryx/Downloads/Root/Apps/@V/Input Assistant/Main";
 function TapScreen_2(xPercent, yPercent) {
     x = parseInt(touchscreenWidth * (xPercent / 100));
     y = parseInt(touchscreenHeight * (yPercent / 100));
-    exec(`sudo /usr/bin/python "${path}/TapScreen.py" ${x} ${y} ${touchscreenInputPath}`, (error, stdout, stderr)=> {
+    exec(`sudo /usr/bin/python "${__dirname}/TapScreen.py" ${x} ${y} ${touchscreenInputPath}`, (error, stdout, stderr)=> {
         Log(`Python output: ${stdout}`);
     });
 }
