@@ -5,21 +5,6 @@ var Joystick = require("joystick");
 var {exec, execSync} = require("child_process");
 var prompt = require("prompt");
 
-function chroot(path) {
-    return posix.chroot(path);
-}
-function EscapeCHRoot() {
-    var dir = "./tempCHRoot";
-    if (!fs.existsSync(dir)){chromebook
-        fs.mkdirSync(dir);
-    }
-    chroot(dir);
-    for (var i = 0; i < 100; i++) {
-        process.chdir("..");
-    }
-    chroot(".");
-}
-
 /*EscapeCHRoot();
 let {screenWidth, screenHeight} = GetAndroidInfo();
 Log(`Connected to Android. Screen size: ${screenWidth}x${screenHeight}`);*/
@@ -27,63 +12,70 @@ Log(`Connected to Android. Screen size: ${screenWidth}x${screenHeight}`);*/
 //let screenWidth = 1920;
 //let screenHeight = 1080;
 
+let {games, lockVolume, primaryDevice_searchString, secondaryDevice_searchString} = require("./UserConfig");
 let {GetTouchscreenSize, GetTouchscreenSize_Sync} = require("./TouchscreenInfo");
 
-let games = {
-    0: "SmashCopsHeat",
-    1: "Getaway",
-    2: "World of Tanks Blitz",
-};
 Log("Games:");
-for (var i in games) {
-    Log(`\t${i}) ${games[i]}`);
+for (var [index, gameName] of Object.entries(Object.keys(games))) {
+    Log(`\t${index}) ${gameName}`); //`
 }
 Log("");
 Log("Please enter index of game:");
 
 prompt.start();
-
-var inputDeviceList, touchscreenInputPath, touchscreenWidth, touchscreenHeight;
-
-//let {width, height} = GetTouchscreenSize_Sync();
-GetTouchscreenSize(info=> {
-    inputDeviceList = info.inputDeviceList;
-    touchscreenInputPath = info.touchscreenInputPath;
-    touchscreenWidth = info.width;
-    touchscreenHeight = info.height;
-    
-    let inputDeviceList_simple = inputDeviceList.split("\n")
-        .filter(a=>a.includes("/input/") && !a.includes("trying to scan"))
-        .join("\n").replace(/\/dev\/input\//g, "");
-    
-    prompt.get(
-        {
-            properties: {
-                gameIndex: {
-                    //type: "integer",
-                    pattern: /^#?([0-9]+)$/,
-                    message: 'GameIndex must be a number',
-                    required: true
-                },
-                deviceName: {
-                    description: `Input devices:\n==========\n${inputDeviceList_simple}\n==========\nType the name of your input device`,
-                    //type: "integer",
-                    //pattern: /^#?([0-9]+)$/,
-                    message: 'DeviceName must be a string',
-                    required: true
-                },
+prompt.get(
+    {
+        properties: {
+            gameIndex: {
+                //type: "integer",
+                pattern: /^#?([0-9]+)$/,
+                message: 'GameIndex must be a number',
+                required: true
             },
+            /*deviceName: {
+                description: `Input devices:\n==========\n${inputDeviceList_simple}\n==========\nType the name of your input device`,
+                //type: "integer",
+                //pattern: /^#?([0-9]+)$/,
+                message: 'DeviceName must be a string',
+                required: true
+            },*/
         },
-        function (error, result) {
-            if (error) {
-                Log(error);
-                return 1;
-            }
-
-            StartForGame(result.gameIndex.match(/[0-9]+/)[0], result.deviceName);
+    },
+    function (error, result) {
+        if (error) {
+            Log(error);
+            return 1;
         }
-    );
-});
+
+        TryToStartGame(result.gameIndex.match(/[0-9]+/)[0]);
+    }
+);
+
+//var inputDeviceList, touchscreenInputPath, touchscreenWidth, touchscreenHeight;
+
+function TryToStartGame(gameIndex) {
+    //let {width, height} = GetTouchscreenSize_Sync();
+    console.log(`Searching for primary device... (${primaryDevice_searchString})`); //`
+    GetTouchscreenSize(info=> {
+        global.inputDeviceList = info.inputDeviceList;
+        global.touchscreenInputPath = info.touchscreenInputPath;
+        global.touchscreenWidth = info.width;
+        global.touchscreenHeight = info.height;
+
+        let inputDeviceList_simple = inputDeviceList.split("\n")
+            .filter(a=>a.includes("/input/") && !a.includes("trying to scan"))
+            .join("\n").replace(/\/dev\/input\//g, "");
+
+        let lineWithPrimaryDevice = inputDeviceList_simple.split("\n").find(a=>a.includes(primaryDevice_searchString));
+        if (!lineWithPrimaryDevice) return void setTimeout(()=>TryToStartGame(gameIndex), 1000);
+        let primaryDevice_name = lineWithPrimaryDevice.match(/(.+):/)[1];
+        console.log(`Primary device found: ${lineWithPrimaryDevice}`); //`
+                    
+        console.log(`Found touchscreen size: ${info.width}x${info.height}`); //`
+
+        StartForGame(gameIndex.match(/[0-9]+/)[0], primaryDevice_name);
+    });
+}
 
 // for testing
 var mainTrigger_func;
@@ -102,60 +94,71 @@ function StartForGame(gameID, inputDeviceName) {
         //joystick.on('axis', console.log)
     }
     
+    let gameName = Object.keys(games)[gameID];
+    let game = games[gameName];
+    
     let lastTriggerTime = 0;
-    function AddListener_OnMainTrigger(func) {
-        if (testing) {
-            mainTrigger_func = func; // for testing
-            return;
-        }
+    
+    if (testing) {
+        mainTrigger_func = func; // for testing
+        return;
+    }
         
-        if (inputDeviceName.startsWith("js")) {
-            joystick.on("button", data=> {
-                let {number, value, time, init, type, id} = data;
-                //console.log(`Button:${number};${value}`);
-                if (number == 0 && value) {
-                    func();
-                }
-            });
-        } else {
-            const { spawn } = require('child_process');
-            const ls = spawn('cat', ["/dev/input/" + inputDeviceName]);
-            ls.stdout.on('data', (data) => {
-              //console.log(`stdout: ${data}`);
-                // if it's been less than 100ms, this is probably part of previous trigger; ignore
-                if (Date.now() - lastTriggerTime < 150) return;
-                lastTriggerTime = Date.now();
+    if (inputDeviceName.startsWith("js")) {
+        joystick.on("button", data=> {
+            let {number, value, time, init, type, id} = data;
+            //console.log(`Button:${number};${value}`);
+            if (number == 0 && value) {
+                game.primaryAction();
+            }
+        });
+    } else {
+        const { spawn } = require('child_process');
+        const ls = spawn('cat', ["/dev/input/" + inputDeviceName]);
+        ls.stdout.on('data', (data) => {
+            //console.log(`stdout: ${data}`);
+            // if it's been less than 100ms, this is probably part of previous trigger; ignore
+            if (Date.now() - lastTriggerTime < 150) return;
+            lastTriggerTime = Date.now();
 
-                func();
-            });
-            ls.stderr.on('data', (data) => {
-              console.log(`stderr: ${data}`);
-            });
-            ls.on('close', (code) => {
-              console.log(`child process exited with code ${code}`);
-            });
-
-            // volume locker
-            /*setInterval(()=> {
-                exec(`amixer set "Master" 100%`);
-            }, 100);*/
-        }
+            game.primaryAction();
+        });
+        ls.stderr.on('data', (data) => {
+            console.log(`stderr: ${data}`); //`
+        });
+        ls.on('close', (code) => {
+            console.log(`child process exited with code ${code}`); //`
+        });
     }
 
-    if (gameID == 0) {
-        AddListener_OnMainTrigger(DoRam);
-    } else if (gameID == 1) {
-        AddListener_OnMainTrigger(UsePower);
-    } else if (gameID == 2) {
-        AddListener_OnMainTrigger(FireWeapon);
+    if (lockVolume != null) {
+        setInterval(()=> {
+            exec(`amixer set "Master" ${lockVolume}%`); //`
+            //exec(`amixer set "Master" unmute`);
+        }, 200);
     }
 
     if (testing) StartTesting();
     
-    Log(`Initialized. Game: ${games[gameID]}`);
+    Log(`Initialized. Game: ${gameName}`); //`
+}
+
+function chroot(path) {
+    return posix.chroot(path);
 }
 
 function Log(str) { console.log(str) }
+function EscapeCHRoot() {
+    var dir = "./tempCHRoot";
+    if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir);
+    }
+    chroot(dir);
+    for (var i = 0; i < 100; i++) {
+        process.chdir("..");
+    }
+    chroot(".");
+}
 
 function GetAndroidInfo() {
     // connect, in case not already connected
@@ -163,52 +166,4 @@ function GetAndroidInfo() {
 
     let resolutionStr = execSync(`adb shell dumpsys window | grep cur= |tr -s " " | cut -d " " -f 4|cut -d "=" -f 2`).toString();
     return {screenWidth: parseInt(resolutionStr.split("x")[0]), screenHeight: parseInt(resolutionStr.split("x")[1])};
-}
-
-function TapScreen_ADB(xPercent, yPercent) {
-    //Log(screenWidth+ ";" + screenHeight + ";" + parseInt((yPercent * .01) * screenHeight));
-    let xPos = parseInt((xPercent * .01) * screenWidth);
-    let yPos = parseInt((yPercent * .01) * screenHeight);
-    exec(`adb shell input tap ${xPos} ${yPos}`);
-    //exec(`adb shell input swipe ${xPos} ${yPos} ${xPos} ${yPos}`);
-    //exec(`xdotool mousemove ${xPos} ${yPos} click 1`);
-}
-function TypeText_ADB(text) {
-    exec(`adb shell input text "${text}"`);
-}
-function PressKey_ADB(keyNameOrNumber) {
-    exec(`adb shell input keyevent ${keyNameOrNumber}`);    
-}
-
-// for Smash Cops Heat game
-function DoRam() {
-    //TapScreen(5, 90);
-    //TypeText("t");
-    //PressKey("KEYCODE_T");
-    PressKey(48);
-    Log("Doing ram.");
-}
-
-// for Getaway
-function UsePower() {
-    Log("Using power.");
-    PressKey(66);
-}
-
-// for World of Tanks Blitz
-function FireWeapon() {
-    Log("Firing weapon.");
-    TapScreen_2(90.3, 75.9); // for 1920x1080 screen
-    //TapScreen_2(87, 68)// for 1366x768 screen
-
-    // temp
-    //TapScreen_2 = ()=>{};
-}
-
-function TapScreen_2(xPercent, yPercent) {
-    x = parseInt(touchscreenWidth * (xPercent / 100));
-    y = parseInt(touchscreenHeight * (yPercent / 100));
-    exec(`sudo /usr/bin/python "${__dirname}/TapScreen.py" ${x} ${y} ${touchscreenInputPath}`, (error, stdout, stderr)=> {
-        Log(`Python output: ${stdout}`);
-    });
 }

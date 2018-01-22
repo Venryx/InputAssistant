@@ -27,7 +27,7 @@ module.exports.GetTouchscreenSize = function(callback) {
             let heightNameLineNumber = lines.findIndex(a=>a.includes("ABS_MT_POSITION_Y"));
             let height = parseInt(lines[heightNameLineNumber + 3].match(/Max +([0-9]+)/)[1]);
 
-            console.log(`Found touchscreen size: ${width}x${height}`);
+            //console.log(`Found touchscreen size: ${width}x${height}`);
 
             callback({inputDeviceList, touchscreenInputPath, width, height});
         });

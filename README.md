@@ -13,7 +13,7 @@ Translates input from a joystick/button into actions within Android games. (for 
 
 ### Usage
 
-1) Connect joystick or bluetooth button.
+1) Connect joystick or bluetooth shutter button. (by default, uses a Satechi shutter button; can change in UserConfig.js)
 2) Run "./Start.sh". (can run from ChromeOS using "enter-chroot" command)
 
 Joystick/button actions will now translate into Android game actions, as specified in the script files.
